@@ -2,9 +2,8 @@ from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils import executor
 import requests
-
+import json
 from config import TOKEN
-
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
@@ -27,8 +26,29 @@ async def unknown_message(message: types.Message):
         print(resp.text)
         kakashki = resp.text
         kakashki = kakashki.replace('\/', '/')
-        await message.reply(kakashki)
-
+        filtered = json.loads(kakashki)
+        print (filtered['status'])
+        status = filtered['status']
+        if status == True:
+            filtered = filtered['data']
+            filtered = filtered['file']
+            filtered = filtered['url']
+            shorten = filtered['short']
+            filtered = filtered['full']
+            endpoint = 'https://clck.ru/--'
+            url = (shorten)
+            resp = requests.get(endpoint, params = {'url' : url})
+            clckrulink = resp.text
+            print (clckrulink)
+            print (filtered)
+            print (shorten)
+            await message.reply('Short: '+ shorten+'\n'+'Full: '+filtered+ '\n'+'clck.ru: '+clckrulink)
+        else:
+            errcode = json.loads(kakashki)
+            errcode = errcode['error']
+            errcode = errcode['message']
+            await message.reply(errcode)
+            
 if __name__ == '__main__':
     print('bot started!')
     executor.start_polling(dp)
